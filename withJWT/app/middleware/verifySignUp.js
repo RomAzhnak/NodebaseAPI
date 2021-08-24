@@ -1,6 +1,5 @@
 const db = require("../models");
 const User = db.user;
-const { body, validationResult } = require('express-validator');
 const { Op } = require("sequelize");
 
 exports.checkDuplicateUsernameOrEmail = async (req, res, next) => {
