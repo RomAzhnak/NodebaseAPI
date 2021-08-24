@@ -1,41 +1,24 @@
 const db = require("../models");
 const User = db.user;
+const { body, validationResult } = require('express-validator');
+const { Op } = require("sequelize");
 
-checkDuplicateUsernameOrEmail = (req, res, next) => {
-  // Username
-  User.findOne({
-    where: {
-      username: req.body.username
-    }
-  }).then(user => {
-    if (user) {
-      res.status(400).send({
-        message: "Failed! Username is already in use!"
-      });
-      return;
-    }
+exports.checkDuplicateUsernameOrEmail = async (req, res, next) => {
 
-    // Email
-    User.findOne({
+  try {
+    const user = await User.findAll({
       where: {
-        email: req.body.email
+        [Op.or]: [
+          { username: req.body.username },
+          { email: req.body.email }
+        ]
       }
-    }).then(user => {
-      if (user) {
-        res.status(400).send({
-          message: "Failed! Email is already in use!"
-        });
-        return;
-      }
-
-      next();
     });
-  });
+    if (user[0]) {;
+      throw new Error("Failed! Username or email already in use!");
+    }
+    next();
+  } catch(err) {
+    res.status(500).send({ message: err.message });
+  }
 };
-
-
-const verifySignUp = {
-  checkDuplicateUsernameOrEmail: checkDuplicateUsernameOrEmail
-};
-
-module.exports = verifySignUp;
